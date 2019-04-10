@@ -10,8 +10,9 @@ var gutil = require('gulp-util');
 var babelify = require('babelify');
 var uglify = require('gulp-uglify');
 var sourcemaps = require('gulp-sourcemaps');
+var sass = require('gulp-sass');
 
-var dependencies = ['tone', 'paper'];
+var dependencies = [];
 
 // How many times the scripts task is fired
 var scriptsCount = 0;
@@ -56,10 +57,11 @@ function bundleApp(isProduction) {
     .pipe(source('bundle.js'))
     .pipe(buffer())
     .pipe(sourcemaps.init({loadMaps: true}))
-    // Add transformation tasks to the pipeline here.
+  // Add transformation tasks to the pipeline here.
     .pipe(uglify())
+    .on('error', function (err) { gutil.log(gutil.colors.red('[Error]'), err.toString()); })
     .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest(output_dir + '/js'));
+    .pipe(gulp.dest(output_dir + '/js/'));
 }
 
 gulp.task('scripts:dev', function () {
@@ -74,4 +76,12 @@ gulp.task('scripts:watch', function () {
   gulp.watch(['./src/js/*.js'], ['scripts:dev']);
 });
 
-gulp.task('default', ['scripts:prod']);
+gulp.task('sass', function () {
+  gulp.src('./src/sass/**/*.scss')
+    .pipe(sourcemaps.init())
+    .pipe(sass().on('error', sass.logError))
+    .pipe(sourcemaps.write('.'))
+    .pipe(gulp.dest(output_dir + '/css'));
+});
+
+gulp.task('default', ['sass', 'scripts:prod']);
